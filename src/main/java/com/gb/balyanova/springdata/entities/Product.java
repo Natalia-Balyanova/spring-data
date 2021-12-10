@@ -16,6 +16,9 @@ public class Product {
     @Column(name = "price")
     private Integer price;
 
+    @Column(name = "secret_key")
+    private String secretKey;
+
     public Product(){}
 
     public Long getId() {
@@ -33,6 +36,14 @@ public class Product {
     }
 
     public Integer getPrice() { return price; }
+
+    public String getSecretKey() {
+        return secretKey;
+    }
+
+    public void setSecretKey(String secretKey) {
+        this.secretKey = secretKey;
+    }
 
     public void setPrice(Integer price) {
         this.price = price;
