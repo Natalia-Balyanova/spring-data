@@ -1,25 +1,28 @@
 package com.gb.balyanova.springdata.controllers;
 
+import com.gb.balyanova.springdata.converter.ProductConverter;
 import com.gb.balyanova.springdata.dto.ProductDto;
 import com.gb.balyanova.springdata.entities.Product;
 import com.gb.balyanova.springdata.exceptions.ResourceNotFoundException;
+import com.gb.balyanova.springdata.exceptions.ValidationException;
 import com.gb.balyanova.springdata.services.ProductService;
+import com.gb.balyanova.springdata.validators.ProductValidator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/v1/products")
 public class ProductController {
-    private ProductService productService;
-
-    public ProductController(ProductService productService) {
-        this.productService = productService;
-    }
+    private final ProductService productService;
+    private final ProductConverter productConverter;
+    private final ProductValidator productValidator;
 
     @GetMapping
-    public Page<ProductDto> findAll(
+    public Page<ProductDto> getAllProducts(
             @RequestParam(name = "p", defaultValue = "1") Integer page,
             @RequestParam(name = "min_price", required = false) Integer minPrice,
             @RequestParam(name = "max_price", required = false) Integer maxPrice,
@@ -28,37 +31,30 @@ public class ProductController {
         if(page < 1) {
             page = 1;
         }
-        return productService.find(minPrice, maxPrice, titlePart, page).map(
-                p -> new ProductDto(p)
+        return productService.findAll(minPrice, maxPrice, titlePart, page).map(
+                p -> productConverter.entityToDto(p)
         );
     }
 
     @PostMapping
-    public Product saveNewProduct(@RequestBody ProductDto productDto) {
-        Product product = new Product();
-        product.setId(null);//здесь занулили
-        product.setTitle(productDto.getTitle());
-        product.setPrice(productDto.getPrice());
-        return productService.save(product);
+    public ProductDto saveNewProduct(@RequestBody ProductDto productDto) {
+        productValidator.validate(productDto);
+        Product product = productConverter.dtoToEntity(productDto);
+        product = productService.save(product);
+        return productConverter.entityToDto(product);
     }
-    //проверяла метод в постмане. Проверка на несуществующий id (напр, 1000) не работает,
-    //он все равно записывает продукт в конец списка и создает новый продукт с id 21, 22 и т.д.
-    //остальной функционал работает
+
     @PutMapping
-    public Product updateProduct(@RequestBody ProductDto productDto) {
-        if(!productService.findById(productDto.getId()).isPresent()){
-            throw new ResourceNotFoundException("Product Not Found, id: " + productDto.getId());
-        }
-        Product updateProduct = new Product();
-        updateProduct.setId(productDto.getId());
-        updateProduct.setTitle(productDto.getTitle());
-        updateProduct.setPrice(productDto.getPrice());
-        return productService.save(updateProduct);
+    public ProductDto updateProduct(@RequestBody ProductDto productDto) {
+        productValidator.validate(productDto);
+        Product product = productService.updateProductFromDto(productDto);
+        return productConverter.entityToDto(product);
     }
 
     @GetMapping("/{id}")
-    public Product getProductById(@PathVariable Long id) {
-        return productService.findById(id).orElseThrow(() -> new ResourceNotFoundException("Product Not Found, id: " + id));
+    public ProductDto getProductById(@PathVariable Long id) {
+        Product product = productService. findById(id).orElseThrow(() -> new ResourceNotFoundException("Product Not Found, id: " + id));
+        return productConverter.entityToDto(product);
 //        if(product.isPresent()) {
 //            return new ResponseEntity<>(product.get(), HttpStatus.OK);
 //        }
