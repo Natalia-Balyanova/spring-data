@@ -11,7 +11,7 @@ angular.module('app', []).controller('indexController', function ($scope, $http)
                 max_price: $scope.filter ? $scope.filter.max_price: null
                 }
             }).then(function (response) {
-                $scope.ProductsList = response.data.content;
+                $scope.ProductsPage = response.data;
                 console.log($scope.ProductsList);
             });
      };
@@ -19,9 +19,32 @@ angular.module('app', []).controller('indexController', function ($scope, $http)
      $scope.loadProductsDefault = function (pageIndex = 1) {
             $http.get(contextPath + '/products')
                 .then(function (response) {
-                    $scope.ProductsList = response.data.content;
+                    $scope.ProductsPage = response.data;
                 });
+     }
+
+        $scope.addToCart = function (productId){
+            $http.get(contextPath + '/products/cart/' + productId)
+                        .then(function (response) {
+                              $scope.CartPage = response.data;
+                              $scope.loadCartPage();
+                        });
         }
+
+         $scope.loadCartPage = function (){
+             $http.get(contextPath + '/products/cart/cartInfo/')
+                        .then(function (response) {
+                            $scope.CartPage = response.data;
+                        });
+         }
+
+         $scope.deleteProductFromCart = function (productId) {
+                $http.delete(contextPath + '/products/cart/cartInfo/' + productId)
+                         .then(function (response) {
+                             console.log(response.data)
+                             $scope.loadCartPage();
+                         });
+                }
 
         $scope.deleteProduct = function (productId) {
             $http.delete(contextPath + '/products/' + productId)
@@ -29,29 +52,46 @@ angular.module('app', []).controller('indexController', function ($scope, $http)
                     console.log(response.data)
                     $scope.loadProducts();
                 });
-        }
-    //старое дз
-//        $scope.changePrice = function (productId, delta) {
-//            $http({
-//                url: contextPath + 'products/change_price',
-//                method: 'get',
-//                params: {
-//                    productId: productId,
-//                    delta: delta
-//                }
-//            }).then(function (response) {
-//                console.log(response.data)
-//                $scope.loadProducts();
-//            });
-//        }
+     }
 
         $scope.createProductJson = function () {
             console.log($scope.newProductJson);
-            $http.post(contextPath + '/products', $scope.newProductJson)
+            $http.post(contextPath + '/products/', $scope.newProductJson)
                            .then(function (response) {
                                 $scope.loadProducts();
                            });
-        }
+     }
+
+        $scope.updateProduct = function () {
+            $http.put(contextPath + '/products', $scope.updated_product)
+                            .then(function (response) {
+                                console.log($scope.updated_product);
+                                $scope.loadProducts();
+                                $scope.updated_product = null;
+                             });
+     }
+
+        $scope.prepareProductForUpdate = function (productId) {
+            $http.get(contextPath + '/products/' + productId)
+                        .then(function (response) {
+                                $scope.updated_product = response.data;
+                             });
+     }
+//неработающий метод
+//         $scope.changeAmount = function (productId, amount) {
+//                $http({
+//                         url: contextPath + '/products/cart/change_amount',
+//                         method: 'get',
+//                         params: {
+//                             productId: productId,
+//                             amount: amount
+//                         }
+//                     }).then(function (response) {
+//                         console.log(response.data)
+//                         $scope.loadCartPage();
+//                     });
+//                 }
+//         $scope.loadCartPage();
 
         //старое дз
 //        $scope.filterProducts = function() {
@@ -69,6 +109,20 @@ angular.module('app', []).controller('indexController', function ($scope, $http)
 //                        $scope.findProductBetween.min = null;
 //                        $scope.findProductBetween.max = null;
 //                });
+//        }
+    //старое дз
+//        $scope.changePrice = function (productId, delta) {
+//            $http({
+//                url: contextPath + 'products/change_price',
+//                method: 'get',
+//                params: {
+//                    productId: productId,
+//                    delta: delta
+//                }
+//            }).then(function (response) {
+//                console.log(response.data)
+//                $scope.loadProducts();
+//            });
 //        }
 
         $scope.loadProducts();

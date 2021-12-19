@@ -36,34 +36,28 @@
             </form>
         </div>
 
-        <!--    <p></p>-->
-        <!--    <form novalidate ng-submit="filterProducts()">-->
-        <!--        MIN<input class="form-control" type="number" placeholder="0" ng-model="findProductBetween.min">-->
-        <!--        <p></p>-->
-        <!--        MAX<input  class="form-control" type="number" placeholder="1200" ng-model="findProductBetween.max">-->
-        <!--        <p></p>-->
-        <!--        <button type="submit" class="btn btn-primary">Filter</button>-->
-        <!--    </form>-->
-
         <div class="products">
-            <h3>Products</h3>
+            <h3>All Products</h3>
             <table class="table table-hover" cellpadding="0" cellspacing="0">
                 <tr>
                     <td>ID</td>
                     <td>Title</td>
                     <td>Price</td>
-                    <td>Action</td>
+                    <td>Add to Change Form</td>
+                    <td>Add to Cart</td>
+                    <td>Delete</td>
                 </tr>
                 <tbody>
-                <tr ng-repeat="p in ProductsList">
+                <tr ng-repeat="p in ProductsPage.content">
                     <td>{{p.id}}</td>
                     <td>{{p.title}}</td>
                     <td>{{p.price}}</td>
-                    <!--            <td>-->
-                    <!--                <button class="btn btn-primary" ng-click="changePrice(p.id, -1)">-</button>-->
-                    <!--                {{p.price}}-->
-                    <!--                <button class="btn btn-primary" ng-click="changePrice(p.id, 1)">+</button>-->
-                    <!--            </td>-->
+                    <td>
+                        <button class="btn btn-primary" ng-click="prepareProductForUpdate(p.id)">Change</button>
+                    </td>
+                    <td>
+                        <button class="btn btn-primary" ng-click="addToCart(p.id)">Add to Cart</button>
+                    </td>
                     <td>
                         <button class="btn btn-danger" ng-click="deleteProduct(p.id)">DELETE</button>
                     </td>
@@ -71,6 +65,36 @@
                 </tbody>
             </table>
         </div>
+    </div>
+
+    <div>
+        <h3>Products in Cart</h3>
+        <table class="table">
+            <thead>
+            <tr>
+                <td>ID</td>
+                <td>Title</td>
+                <td>Price</td>
+                <td>Amount</td>
+                <td>Delete from Cart</td>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat='p in CartPage'>
+                <td>{{p.id}}</td>
+                <td>{{p.title}}</td>
+                <td>{{p.price}}</td>
+                <td>
+                    <button class="btn btn-primary" ng-click="changeAmount(p.id, -1)">-</button>
+                    {{count = 1}}
+                    <button class="btn btn-primary" ng-click="changeAmount(p.id, 1)">+</button>
+                    </td>
+                <td>
+                    <button class="btn btn-danger" ng-click="deleteProductFromCart(p.id)">Delete</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
     </div>
 
     <p></p>
@@ -83,11 +107,21 @@
         <button type="submit" class="btn btn-primary">Save JSON product</button>
     </form>
 
-    <br>
+    <h3>Update product</h3>
+    <form novalidate ng-submit="updateProduct()">
+        <input class="form-control" type="number" hidden placeholder="Id" ng-model="updated_product.id">
+        <p></p>
+        <input class="form-control" type="text" placeholder="Title" ng-model="updated_product.title">
+        <p></p>
+        <input class="form-control" type="number" placeholder="Price" ng-model="updated_product.price">
+        <p></p>
+        <button type="submit" class="btn btn-primary">Update</button>
+    </form>
 
-    <span class="pages">
-        <button class="btn btn-primary" ng-click="loadProductsDefault()">Default Page</button>
-    </span>
+    <br>
+        <span class="pages">
+            <button class="btn btn-primary" ng-click="loadProductsDefault()">Default Page</button>
+        </span>
 
 </div>
 

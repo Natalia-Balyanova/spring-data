@@ -4,6 +4,7 @@ package com.gb.balyanova.springdata.repositories;
 import com.gb.balyanova.springdata.entities.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -21,6 +22,10 @@ public interface ProductRepository extends JpaRepository <Product, Long>, JpaSpe
 
     @Query("select p from Product p where price > 1000")
     List<Product> findMoreThanValue(Integer max);
+
+    @Modifying
+    @Query("update Product p set p.title = :title where p.id = :id ")
+    void updateProduct(Long id, String title);
 
 //    @Query("select p from Product p where [.title = ?1") //поиск по первому аргументу
 //    Integer hqlGetPriceByTitle(String title);
