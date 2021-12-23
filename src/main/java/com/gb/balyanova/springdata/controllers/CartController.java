@@ -23,7 +23,7 @@ public class CartController {
     public List<ProductDto> sendCardInfo (){
         return cartService.cardInfo();
     }
-
+    @DeleteMapping("/cartInfo/{id}") public void deleteById(@PathVariable Long id) { cartService.deleteByIdFromCartId(id); }
 //    @GetMapping("/cartInfo")
 //    public Map<ProductDto, Integer> sendCardInfo (){
 //        return cartService.cardInfo();
