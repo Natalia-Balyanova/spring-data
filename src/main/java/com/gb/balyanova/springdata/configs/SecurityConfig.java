@@ -4,43 +4,48 @@ import com.gb.balyanova.springdata.services.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
 @Slf4j
-@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
-    private final UserService userService;
+    private final JwtRequestFilter jwtRequestFilter;
+    UserService userService;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        log.info("Dao Authentication Provider");
-        http.authorizeRequests()
-                .antMatchers("/auth_page/**").authenticated()
-                .antMatchers("/user_info").authenticated()
-//                .antMatchers("/admin/**").hasAnyRole("ADMIN", "SUPERADMIN")
-//                .antMatchers("/customer/**").hasAnyRole("USER")
-                .antMatchers("/admin/**").hasAnyAuthority("ADMINISTRATE", "DELETE_USER", "DELETE_PRODUCT")
-                .antMatchers("/delete_product/**").hasAnyAuthority("ADMINISTRATE", "DELETE_USER", "DELETE_PRODUCT")
-                .antMatchers("/delete_user/**").hasAnyAuthority("ADMINISTRATE", "DELETE_USER", "DELETE_PRODUCT")
-                .antMatchers("/add_product").hasAnyAuthority("ADD_PRODUCT")
+        http
+                .csrf().disable()
+                .authorizeRequests()
+//                .antMatchers("/api/v1/demo").hasAnyRole("ADMIN")
+                .antMatchers("/api/v1/registration").not().fullyAuthenticated()
+                .antMatchers("/api/v1/orders/**").authenticated()
+                .antMatchers("/api/v1/profile").authenticated()//должен быть авторизован
+                .antMatchers("/h2-console/**").permitAll()//к консоли доступ всем
                 .anyRequest().permitAll()
                 .and()
-                .formLogin()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)//нет привязки к сессии и id
                 .and()
-                .logout()
-                .invalidateHttpSession(true)
-                .deleteCookies("JSESSIONID");
-//                .and()
-//                .sessionManagement()
-//                .maximumSessions(1)
-//                .maxSessionsPreventsLogin(true);
+                .headers().frameOptions().disable()
+                .and()
+                .exceptionHandling()//обработка искл
+                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED));//401
+
+        http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
     }
 
     @Bean
@@ -48,11 +53,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new BCryptPasswordEncoder();
     }
 
+    @Override
     @Bean
-    public DaoAuthenticationProvider daoAuthenticationProvider() {
-        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
-        authenticationProvider.setPasswordEncoder(passwordEncoder());
-        authenticationProvider.setUserDetailsService(userService);
-        return authenticationProvider;
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
+    }
+
+    protected void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(userService).passwordEncoder(passwordEncoder());
     }
 }

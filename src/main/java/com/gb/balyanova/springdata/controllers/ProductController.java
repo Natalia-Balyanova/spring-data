@@ -65,19 +65,4 @@ public class ProductController {
     public void deleteById(@PathVariable Long id) {
         productService.deleteById(id);
     }
-
-//    @GetMapping("/change_price")
-//    public void changePrice(@RequestParam Long productId, @RequestParam Integer delta) {
-//        productService.changePrice(productId, delta);
-//    }
-//
-//    @GetMapping("/price_low")
-//    public List<Product> findLowPriceProduct(@RequestParam(defaultValue = "100") Integer min) {
-//        return productService.findLowPriceProducts(min);
-//    }
-//
-//    @GetMapping("/price_high")
-//    public List<Product> findMoreThanValue(@RequestParam(defaultValue = "1000") Integer max) {
-//        return productService.findMoreThanValue(max);
-//    }
 }

@@ -24,16 +24,4 @@ public class CartController {
         return cartService.cardInfo();
     }
     @DeleteMapping("/cartInfo/{id}") public void deleteById(@PathVariable Long id) { cartService.deleteByIdFromCartId(id); }
-//    @GetMapping("/cartInfo")
-//    public Map<ProductDto, Integer> sendCardInfo (){
-//        return cartService.cardInfo();
-//    }
-//    @GetMapping("/{id}")
-//    public void addProductInCard (@PathVariable Long id, @PathVariable Integer count){
-//    cartService.addProductInCart(id, count);
-//}
-//    @GetMapping("/change_amount")
-//    public void changeAmount(@RequestParam Long productId, @RequestParam Integer amount) {
-//        cartService.changeAmount(productId, amount);
-//    }
 }
