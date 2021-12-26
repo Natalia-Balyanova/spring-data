@@ -1,5 +1,9 @@
-angular.module('app', []).controller('indexController', function ($scope, $http) {
+angular.module('app', ['ngStorage']).controller('indexController', function ($scope, $rootScope, $http, $localStorage) {
     const contextPath = 'http://localhost:8189/app/api/v1';
+
+        if ($localStorage.springDataUser) {
+            $http.defaults.headers.common.Authorization = 'Bearer ' + $localStorage.springDataUser.token;
+        }
 
     $scope.loadProducts = function (pageIndex = 1) {
         $http ({
@@ -15,6 +19,71 @@ angular.module('app', []).controller('indexController', function ($scope, $http)
                 console.log($scope.ProductsList);
             });
      };
+
+     $scope.registration = function() {
+        $http.post('/registration', $scope.user)
+            .then(function successCallback(response) {
+                if (response.data.token) {
+                   $http.defaults.headers.common.Authorization = 'Bearer ' + response.data.token;
+                   $localStorage.springDataUser = {username: $scope.user.username, token: response.data.token};
+
+                   $scope.user.username = null;
+                   $scope.user.password = null;
+                   }
+                }, function errorCallback(response) {
+                     console.log(response.data);
+                     alert(response.data.message);
+                });
+     };
+
+     $scope.tryToAuth = function () {
+             $http.post('/auth', $scope.user)
+                 .then(function successCallback(response) {
+                     if (response.data.token) {
+                         $http.defaults.headers.common.Authorization = 'Bearer ' + response.data.token;
+                         $localStorage.springDataUser = {username: $scope.user.username, token: response.data.token};
+
+                         $scope.user.username = null;
+                         $scope.user.password = null;
+                     }
+                 }, function errorCallback(response) {
+                    console.log(response.data);
+                    alert("incorrect login/password");
+                 });
+         };
+
+         $scope.tryToLogout = function () {
+             $scope.clearUser();
+             if ($scope.user.username) {
+                 $scope.user.username = null;
+             }
+             if ($scope.user.password) {
+                 $scope.user.password = null;
+             }
+         };
+
+         $scope.clearUser = function () {
+             delete $localStorage.springDataUser;
+             $http.defaults.headers.common.Authorization = '';
+         };
+
+         $rootScope.isUserLoggedIn = function () {
+             if ($localStorage.springDataUser) {
+                 return true;
+             } else {
+                 return false;
+             }
+         };
+
+         $scope.showCurrentUserInfo = function () {
+             $http.get('/profile')
+                 .then(function successCallback(response) {
+                     alert('MY NAME IS: ' + response.data.username);
+                 }, function errorCallback(response) {
+                     alert('UNAUTHORIZED');
+                 });
+         };
+
         //первая страница по дефолту/сброс фильтра
      $scope.loadProductsDefault = function (pageIndex = 1) {
             $http.get(contextPath + '/products')
@@ -77,22 +146,6 @@ angular.module('app', []).controller('indexController', function ($scope, $http)
                                 $scope.updated_product = response.data;
                              });
      }
-//неработающий метод
-//         $scope.changeAmount = function (productId, amount) {
-//                $http({
-//                         url: contextPath + '/products/cart/change_amount',
-//                         method: 'get',
-//                         params: {
-//                             productId: productId,
-//                             amount: amount
-//                         }
-//                     }).then(function (response) {
-//                         console.log(response.data)
-//                         $scope.loadCartPage();
-//                     });
-//                 }
-//         $scope.loadCartPage();
-
         //старое дз
 //        $scope.filterProducts = function() {
 //            console.log($scope.findProductBetween);
@@ -124,6 +177,5 @@ angular.module('app', []).controller('indexController', function ($scope, $http)
 //                $scope.loadProducts();
 //            });
 //        }
-
         $scope.loadProducts();
 });
